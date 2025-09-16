@@ -1,3 +1,4 @@
+'use server';
 // You will need a valid VIN for a vehicle supported by the High Mobility API
 const MOCK_VIN = "VIN_GOES_HERE";
 import type { CarMaintenanceData } from '@/lib/types';
