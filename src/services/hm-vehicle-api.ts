@@ -1,8 +1,9 @@
 'use server';
 // You will need a valid VIN for a vehicle supported by the High Mobility API
-const MOCK_VIN = "VIN_GOES_HERE";
+const MOCK_VIN = "1HMFHT9P3AASCA56E";
 import type { CarMaintenanceData } from '@/lib/types';
 import fetch from 'node-fetch';
+import { useLog } from '@/components/debug/log-context';
 
 // A more realistic implementation of the High Mobility Vehicle API client.
 // It now includes OAuth 2.0 Client Credentials Grant flow to get an access token.
@@ -19,6 +20,7 @@ interface AccessTokenResponse {
 }
 
 async function getAccessToken(): Promise<string> {
+  const { addLog } = useLog();
   // If we have a valid token in cache, return it
   if (accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt) {
     return accessToken;
@@ -28,7 +30,7 @@ async function getAccessToken(): Promise<string> {
   const clientSecret = process.env.HM_CLIENT_SECRET;
 
   if (!clientId || !clientSecret || clientId === 'YOUR_CLIENT_ID') {
-    console.warn('HM_CLIENT_ID or HM_CLIENT_SECRET are not set. Using mock data. Please add them to your .env file.');
+    addLog('HM_CLIENT_ID or HM_CLIENT_SECRET are not set. Using mock data. Please add them to your .env file.', 'warn');
     // Return a dummy token for mock mode
     return 'mock-token';
   }
@@ -56,17 +58,19 @@ async function getAccessToken(): Promise<string> {
     // Set expiry to 1 minute before it actually expires to be safe
     tokenExpiresAt = Date.now() + (tokenData.expires_in - 60) * 1000;
 
+    addLog('Successfully fetched new HM access token.', 'info');
     return accessToken;
   } catch (error) {
-    console.error("Error fetching access token:", error);
+    addLog(`Error fetching access token: ${error}`, 'error');
     throw new Error("Could not authenticate with Vehicle API.");
   }
 }
 
 async function getVehicleData(endpoint: string, vin: string, token: string) {
+  const { addLog } = useLog();
   // Use mock data if we're using a mock token.
   if (token === 'mock-token') {
-    console.log(`MOCK API CALL: GET /${endpoint}`);
+    addLog(`MOCK API CALL: GET /${endpoint}`);
     switch (endpoint) {
       case 'maintenance':
         return {
@@ -118,6 +122,7 @@ function createControlMessage(id: string, message: string, type: 'info' | 'warni
 }
 
 export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
+  const { addLog } = useLog();
   try {
     const token = await getAccessToken();
 
@@ -166,9 +171,10 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
       },
     };
 
+    addLog('Successfully fetched and mapped car maintenance data.', 'info');
     return mappedData;
   } catch (error) {
-    console.error("Failed to fetch vehicle data:", error);
+    addLog(`Failed to fetch vehicle data: ${error}`, 'error');
     throw new Error("Could not connect to the Vehicle API.");
   }
 };

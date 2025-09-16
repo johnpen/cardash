@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Bot, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,11 +15,14 @@ import { ChatMessages, type Message } from './chat-messages';
 import { ChatInput } from './chat-input';
 import { getAiResponse } from '@/lib/actions';
 import { ScrollArea } from '../ui/scroll-area';
+import { useLog } from '@/components/debug/log-context';
 
 export function ChatPanel() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const { addLog } = useLog();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const handleSendMessage = async (input: string) => {
     if (!input.trim()) return;
@@ -32,7 +35,8 @@ export function ChatPanel() {
       const response = await getAiResponse(input);
       const aiMessage: Message = { role: 'ai', content: response };
       setMessages((prev) => [...prev, aiMessage]);
-    } catch (error) {
+    } catch (error: any) {
+      addLog(`Chat error: ${error.message}`, 'error');
       const errorMessage: Message = {
         role: 'ai',
         content: 'Sorry, I am having trouble connecting. Please try again later.',
@@ -42,6 +46,15 @@ export function ChatPanel() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+        const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (viewport) {
+            viewport.scrollTop = viewport.scrollHeight;
+        }
+    }
+  }, [messages]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -58,7 +71,7 @@ export function ChatPanel() {
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>DriveAI Assistant</SheetTitle>
         </SheetHeader>
-        <ScrollArea className="flex-1 px-6">
+        <ScrollArea className="flex-1 px-6" ref={scrollAreaRef}>
           <ChatMessages messages={messages} />
         </ScrollArea>
         <SheetFooter className="p-6 pt-2 bg-card">

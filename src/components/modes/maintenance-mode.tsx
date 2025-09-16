@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { getCarMaintenanceData } from '@/services/hm-vehicle-api';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useLog } from '@/components/debug/log-context';
 
 const getStatusColor = (value: number) => {
   if (value < 20) return 'bg-destructive';
@@ -30,18 +31,22 @@ const messageIcons: Record<ControlMessage['type'], React.ReactNode> = {
 export default function MaintenanceMode() {
   const [data, setData] = useState<CarMaintenanceData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { addLog } = useLog();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        addLog('Fetching car maintenance data...', 'info');
         const maintenanceData = await getCarMaintenanceData();
         setData(maintenanceData);
+        addLog('Successfully fetched car maintenance data.', 'info');
       } catch (e: any) {
         setError(e.message || 'Failed to fetch maintenance data.');
+        addLog(`Failed to fetch maintenance data: ${e.message}`, 'error');
       }
     };
     fetchData();
-  }, []);
+  }, [addLog]);
 
   if (error) {
     return <div className="flex items-center justify-center h-full text-destructive"><AlertTriangle className="h-16 w-16 mr-4" />{error}</div>;
