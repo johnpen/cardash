@@ -1,3 +1,5 @@
+// This file is no longer used for the maintenance screen, 
+// but is kept for other parts of the app that might still use it.
 import type { CarMaintenanceData } from '@/lib/types';
 
 export const getCarMaintenanceData = (): CarMaintenanceData => {

@@ -2,11 +2,11 @@
 
 import { aiChatContextualHelp } from '@/ai/flows/ai-chat-contextual-help';
 import { summarizeCarMaintenance } from '@/ai/flows/ai-chat-summarize-maintenance';
-import { getCarMaintenanceData } from '@/lib/mock-data';
+import { getCarMaintenanceData } from '@/services/hm-vehicle-api';
 
 export async function getAiResponse(userQuery: string): Promise<string> {
   try {
-    const carData = getCarMaintenanceData();
+    const carData = await getCarMaintenanceData();
     const carStatusData = JSON.stringify(carData, null, 2);
 
     const result = await aiChatContextualHelp({
@@ -22,6 +22,7 @@ export async function getAiResponse(userQuery: string): Promise<string> {
 
 export async function getAiSummary(timeRange: string): Promise<string> {
   try {
+    // Note: The new API doesn't support time ranges, so we'll just get the latest data.
     const result = await summarizeCarMaintenance({ timeRange });
     return result.summary;
   } catch (error) {
