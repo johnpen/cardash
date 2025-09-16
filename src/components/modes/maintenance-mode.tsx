@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Droplets, Gauge, MessageSquareWarning, Wrench, Thermometer, Info, AlertTriangle, ShieldAlert, CheckCircle2 } from 'lucide-react';
-import type { CarMaintenanceData, ControlMessage } from '@/lib/types';
+import type { CarMaintenanceData, ControlMessage, TirePressure } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { getCarMaintenanceData } from '@/services/hm-vehicle-api';
@@ -31,6 +31,23 @@ const StatusItem = ({ label, ok }: { label: string; ok: boolean }) => (
       </div>
     </div>
   );
+  
+const TireIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/>
+        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+        <path d="M12 22a10 10 0 0 0 10-10"/>
+        <path d="M2 12a10 10 0 0 0 10 10"/>
+    </svg>
+);
+
+const TirePressureItem = ({ location, pressure }: TirePressure) => (
+    <div className="flex items-center justify-between py-2">
+        <span className="text-sm font-medium capitalize">{location}</span>
+        <span className="text-sm font-bold">{pressure.toFixed(2)} bar</span>
+    </div>
+);
+
 
 export default function MaintenanceMode() {
   const [data, setData] = useState<CarMaintenanceData | null>(null);
@@ -67,7 +84,7 @@ export default function MaintenanceMode() {
     return <div className="flex items-center justify-center h-full"><Gauge className="h-16 w-16 animate-pulse" /></div>;
   }
 
-  const { temperatures, fluidLevels, controlMessages, serviceDetails } = data;
+  const { temperatures, fluidLevels, controlMessages, serviceDetails, tirePressures } = data;
 
   return (
     <ScrollArea className="h-full">
@@ -91,6 +108,18 @@ export default function MaintenanceMode() {
              {Object.entries(fluidLevels).map(([key, value]) => (
                 <StatusItem key={key} label={key} ok={value.ok} />
             ))}
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><TireIcon /> Tire Pressure</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 divide-y">
+             {tirePressures.map((tire) => (
+                <TirePressureItem key={tire.location} {...tire} />
+            ))}
+            {tirePressures.length === 0 && <p className="text-muted-foreground text-sm py-2">Tire pressure data not available.</p>}
           </CardContent>
         </Card>
 

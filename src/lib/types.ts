@@ -26,11 +26,17 @@ export type ServiceDetails = {
   recommendedActions: string[];
 };
 
+export type TirePressure = {
+  location: string;
+  pressure: number;
+};
+
 export type CarMaintenanceData = {
   temperatures: TemperatureData;
   fluidLevels: FluidLevelsData;
   controlMessages: ControlMessage[];
   serviceDetails: ServiceDetails;
+  tirePressures: TirePressure[];
 };
 
 export type Mode = 'home' | 'maintenance' | 'audio' | 'satnav' | 'radio' | 'settings';

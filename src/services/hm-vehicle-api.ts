@@ -1,6 +1,6 @@
 'use server';
 
-import type {CarMaintenanceData, ControlMessage} from '@/lib/types';
+import type {CarMaintenanceData, ControlMessage, TirePressure} from '@/lib/types';
 import fetch from 'node-fetch';
 
 // You will need a valid VIN for a vehicle supported by the High Mobility API
@@ -35,6 +35,7 @@ async function getAccessToken(): Promise<string> {
     clientId === 'YOUR_CLIENT_ID' ||
     clientSecret === 'YOUR_CLIENT_SECRET'
   ) {
+    console.warn('HM_CLIENT_ID or HM_CLIENT_SECRET are not set in .env file. API calls will fail.');
     throw new Error('HM_CLIENT_ID and HM_CLIENT_SECRET must be set in your .env file.');
   } 
 
@@ -90,8 +91,9 @@ async function getVehicleData(vin: string, token: string) {
   });
 
   if (!response.ok) {
+    const errorBody = await response.text();
     throw new Error(
-      `Failed to fetch vehicle data: ${response.statusText}`
+      `Failed to fetch vehicle data: ${response.statusText}. Body: ${errorBody}`
     );
   }
   
@@ -149,6 +151,11 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
             ));
         });
     }
+    
+    const tirePressures: TirePressure[] = vehicleData.diagnostics?.tire_pressures?.map((tire: any) => ({
+      location: tire.data.location.replace(/_/g, ' '),
+      pressure: tire.data.pressure.value
+    })) || [];
 
 
     const nextServiceDate = new Date();
@@ -169,11 +176,12 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
       },
       controlMessages: controlMessages.slice(0, 5), // Limit messages to avoid overflow
       serviceDetails: {
-        lastServiceDate: '2023-11-15', // Mocked
+        lastServiceDate: '2024-11-15', // Mocked
         nextServiceDate: vehicleData.maintenance?.drive_in_inspection_time_to?.timestamp || nextServiceDate.toISOString().split('T')[0],
         odometer: vehicleData.diagnostics?.odometer?.data?.value || 0,
         recommendedActions: ['Check tire pressure', 'Rotate tires'], // Mocked
       },
+      tirePressures: tirePressures,
     };
 
     console.info('Successfully fetched and mapped car maintenance data from new endpoint.');
