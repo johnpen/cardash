@@ -1,13 +1,19 @@
 'use client';
 
+import type { Dispatch, SetStateAction } from 'react';
 import Image from 'next/image';
-import { Play, Pause, FastForward, Rewind } from 'lucide-react';
+import { Pause, FastForward, Rewind } from 'lucide-react';
+import type { Mode } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 
-export default function AudioMode() {
+interface AudioModeProps {
+  setActiveMode: Dispatch<SetStateAction<Mode>>;
+}
+
+export default function AudioMode({ setActiveMode }: AudioModeProps) {
   const albumArt = PlaceHolderImages.find(img => img.id === 'album-art');
   
   return (
