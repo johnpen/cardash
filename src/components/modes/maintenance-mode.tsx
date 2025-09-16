@@ -40,7 +40,7 @@ export default function MaintenanceMode() {
   const { temperatures, fluidLevels, controlMessages, serviceDetails } = data;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full overflow-y-auto">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Thermometer className="text-primary" /> Temperatures</CardTitle>

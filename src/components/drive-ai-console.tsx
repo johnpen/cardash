@@ -29,7 +29,7 @@ export function DriveAiConsole() {
 
   return (
     <Card className="w-full max-w-5xl h-[700px] max-h-[90vh] aspect-[4/3] shadow-2xl bg-card/80 backdrop-blur-sm border-secondary flex flex-col overflow-hidden">
-      <div className="flex-1 p-4 sm:p-6 grid grid-cols-1">
+      <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
         {ActiveComponent && <ActiveComponent setActiveMode={setActiveMode} />}
       </div>
       <ConsoleNav activeMode={activeMode} setActiveMode={setActiveMode} />
