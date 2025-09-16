@@ -30,7 +30,6 @@ async function getAccessToken(): Promise<string> {
   const clientSecret = process.env.HM_CLIENT_SECRET;
 
   if (!clientId || !clientSecret || clientId === 'YOUR_CLIENT_ID' || clientSecret === 'YOUR_CLIENT_SECRET') {
-    // Return a dummy token for mock mode
     return 'mock-token';
   }
 
@@ -49,7 +48,8 @@ async function getAccessToken(): Promise<string> {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(`Failed to get access token: ${response.statusText} - ${errorBody}`);
+      console.error(`Failed to get access token: ${response.statusText} - ${errorBody}`);
+      throw new Error(`Could not authenticate with Vehicle API. Status: ${response.status}. Body: ${errorBody}`);
     }
 
     const tokenData = await response.json() as AccessTokenResponse;
@@ -61,14 +61,17 @@ async function getAccessToken(): Promise<string> {
     return accessToken;
   } catch (error) {
     console.error(`Error fetching access token: ${error}`);
-    throw new Error("Could not authenticate with Vehicle API.");
+    // Re-throw the specific error from the try block or a generic one if it's a network error
+    if (error instanceof Error) {
+        throw error;
+    }
+    throw new Error("Could not authenticate with Vehicle API due to a network issue.");
   }
 }
 
 async function getVehicleData(endpoint: string, vin: string, token: string) {
   // Use mock data if we're using a mock token.
   if (token === 'mock-token') {
-    console.warn(`HM API credentials not set. Using mock data for '${endpoint}'.`);
     switch (endpoint) {
       case 'maintenance':
         return {
@@ -125,7 +128,7 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
 
     // Special case for mock data to signal to the UI
     if (token === 'mock-token') {
-       const mockData = await getVehicleData('maintenance', MOCK_VIN, token);
+       console.warn(`HM API credentials not set. Using mock data for maintenance screen.`);
        const nextServiceDate = new Date();
        nextServiceDate.setFullYear(nextServiceDate.getFullYear() + 1);
        return {
@@ -194,6 +197,10 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
     return mappedData;
   } catch (error) {
     console.error(`Failed to fetch vehicle data: ${error}`);
+    if (error instanceof Error) {
+        // Pass the more specific error message to the UI
+        throw new Error(error.message);
+    }
     throw new Error("Could not connect to the Vehicle API.");
   }
 };
