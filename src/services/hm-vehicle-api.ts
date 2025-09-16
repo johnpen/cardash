@@ -19,6 +19,7 @@ interface AccessTokenResponse {
 }
 
 async function getAccessToken(): Promise<string> {
+  console.info('getting  token');
   // If we have a valid token in cache, return it
   if (accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt) {
     return accessToken;
@@ -33,7 +34,7 @@ async function getAccessToken(): Promise<string> {
     return 'mock-token';
   }
 
-  const tokenUrl = 'https://api.high-mobility.com/v1/oauth/token';
+  const tokenUrl = 'https://sandbox.api.high-mobility.com/v1/oauth/token';
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
   try {
@@ -99,7 +100,7 @@ async function getVehicleData(endpoint: string, vin: string, token: string) {
     }
   }
 
-  const apiUrl = `https://api.high-mobility.com/v1/vehicle/${vin}/${endpoint}`;
+  const apiUrl = `https://sandbox.api.high-mobility.com/v1/vehicle/${vin}/${endpoint}`;
   const response = await fetch(apiUrl, {
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -120,6 +121,7 @@ function createControlMessage(id: string, message: string, type: 'info' | 'warni
 
 export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
   try {
+    console.info('access token')
     const token = await getAccessToken();
 
     const [maintenance, engineOil, engineCoolant, fluidLevels, warnings] = await Promise.all([
