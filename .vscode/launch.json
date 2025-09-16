@@ -6,15 +6,7 @@
       "request": "launch",
       "name": "Launch Program",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${file}",
-      "outFiles": ["${workspaceFolder}/**/*.js"]
-    },
-    {
-      "type": "node",
-      "request": "attach",
-      "name": "Next.js: debug server-side",
-      "skipFiles": ["<node_internals>/**"],
-      "port": 9229
+      "program": "${workspaceFolder}/path/to/your/main.js"
     }
   ]
 }

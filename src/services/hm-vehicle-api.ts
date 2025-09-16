@@ -33,17 +33,20 @@ async function getAccessToken(): Promise<string> {
     return 'mock-token';
   }
 
-  const tokenUrl = 'https://sandbox.api.high-mobility.com/v1/oauth/token';
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+  const tokenUrl = 'https://sandbox.api.high-mobility.com/v1/access_tokens';
 
   try {
     const response = await fetch(tokenUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${credentials}`,
+        'Content-Type': 'application/json'
+
       },
-      body: 'grant_type=client_credentials',
+      body: JSON.stringify({
+        'grant_type': 'client_credentials',
+        'client_id': `${clientId}`,
+        'client_secret': `${clientSecret}`
+      }),
     });
 
     if (!response.ok) {
@@ -82,11 +85,6 @@ async function getVehicleData(endpoint: string, vin: string, token: string) {
         return {
           "level": { "value": 0.85, "timestamp": "2024-05-20T10:00:00Z" },
           "temperature": { "value": 95, "unit": "celsius", "timestamp": "2024-05-20T10:00:00Z" }
-        };
-      case 'engine_coolant':
-        return {
-          "level": { "value": 0.90, "timestamp": "2024-05-20T10:00:00Z" },
-          "temperature": { "value": 85, "unit": "celsius", "timestamp": "2024-05-20T10:00:00Z" }
         };
       case 'fluid_levels':
         return {
@@ -148,10 +146,9 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
        }
     }
 
-    const [maintenance, engineOil, engineCoolant, fluidLevels, warnings] = await Promise.all([
+    const [maintenance, engineOil, fluidLevels, warnings] = await Promise.all([
       getVehicleData('maintenance', MOCK_VIN, token),
       getVehicleData('engine_oil', MOCK_VIN, token),
-      getVehicleData('engine_coolant', MOCK_VIN, token),
       getVehicleData('fluid_levels', MOCK_VIN, token),
       getVehicleData('warnings', MOCK_VIN, token)
     ]);
@@ -175,12 +172,12 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
       temperatures: {
         engine: 90, // Not in API, using mock
         oil: engineOil.temperature.value,
-        coolant: engineCoolant.temperature.value,
+        coolant: 85, // Not in API, using mock
         transmission: 75, // Not in API, using mock
       },
       fluidLevels: {
         oil: Math.round(engineOil.level.value * 100),
-        coolant: Math.round(engineCoolant.level.value * 100),
+        coolant: 90, // Not in API, using mock
         washer: fluidLevels.washer_fluid_level.value === 'low' ? 10 : 100,
         brake: fluidLevels.brake_fluid_level.value === 'full' ? 100 : 10,
       },
