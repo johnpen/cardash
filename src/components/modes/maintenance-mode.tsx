@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Droplets, Gauge, MessageSquareWarning, Wrench, Thermometer, Info, AlertTriangle, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import type { CarMaintenanceData, ControlMessage } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,23 +37,29 @@ export default function MaintenanceMode() {
   const [error, setError] = useState<string | null>(null);
   const { addLog } = useLog();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        addLog('Fetching car maintenance data...', 'info');
-        const maintenanceData = await getCarMaintenanceData();
-        addLog(JSON.stringify(maintenanceData))
-        setData(maintenanceData);
-        addLog('Successfully fetched car maintenance data.', 'info');
-      } catch (e: any) {
-        setError(e.message || 'Failed to fetch maintenance data.');
-        addLog(`Failed to fetch maintenance data: ${e.message}`, 'error');
-      }
-    };
-    fetchData();
+  const fetchData = useCallback(async () => {
+    try {
+      addLog('Fetching car maintenance data...', 'info');
+      const maintenanceData = await getCarMaintenanceData();
+      addLog(JSON.stringify(maintenanceData))
+      setData(maintenanceData);
+      setError(null);
+      addLog('Successfully fetched car maintenance data.', 'info');
+    } catch (e: any) {
+      const errorMessage = e.message || 'Failed to fetch maintenance data.';
+      setError(errorMessage);
+      addLog(`Failed to fetch maintenance data: ${errorMessage}`, 'error');
+    }
   }, [addLog]);
 
-  if (error) {
+  useEffect(() => {
+    fetchData(); // Fetch immediately on mount
+    const intervalId = setInterval(fetchData, 20000); // Fetch every 20 seconds
+
+    return () => clearInterval(intervalId); // Cleanup interval on unmount
+  }, [fetchData]);
+
+  if (error && !data) {
     return <div className="flex items-center justify-center h-full text-destructive"><AlertTriangle className="h-16 w-16 mr-4" />{error}</div>;
   }
 
@@ -112,6 +118,7 @@ export default function MaintenanceMode() {
             <CardTitle className="flex items-center gap-2"><Wrench className="text-primary" /> Service Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
+              {error && <p className="text-destructive text-sm font-medium">{error}</p>}
               <div className="flex justify-between">
                   <span className="font-medium">Odometer:</span>
                   <span>{serviceDetails.odometer.toLocaleString()} km</span>
