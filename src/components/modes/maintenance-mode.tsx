@@ -39,7 +39,11 @@ export default function MaintenanceMode() {
         addLog('Fetching car maintenance data...', 'info');
         const maintenanceData = await getCarMaintenanceData();
         setData(maintenanceData);
-        addLog('Successfully fetched car maintenance data.', 'info');
+        if (maintenanceData.serviceDetails.odometer === -1) {
+            addLog('Displaying mock maintenance data. Add API credentials to .env to use live data.', 'warn');
+        } else {
+            addLog('Successfully fetched car maintenance data.', 'info');
+        }
       } catch (e: any) {
         setError(e.message || 'Failed to fetch maintenance data.');
         addLog(`Failed to fetch maintenance data: ${e.message}`, 'error');

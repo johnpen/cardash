@@ -4,6 +4,8 @@ const MOCK_VIN = "1HMFHT9P3AASCA56E";
 import type { CarMaintenanceData } from '@/lib/types';
 import fetch from 'node-fetch';
 
+
+
 // A more realistic implementation of the High Mobility Vehicle API client.
 // It now includes OAuth 2.0 Client Credentials Grant flow to get an access token.
 
@@ -19,7 +21,6 @@ interface AccessTokenResponse {
 }
 
 async function getAccessToken(): Promise<string> {
-  console.info('getting  token');
   // If we have a valid token in cache, return it
   if (accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt) {
     return accessToken;
@@ -28,8 +29,7 @@ async function getAccessToken(): Promise<string> {
   const clientId = process.env.HM_CLIENT_ID;
   const clientSecret = process.env.HM_CLIENT_SECRET;
 
-  if (!clientId || !clientSecret || clientId === 'YOUR_CLIENT_ID') {
-    console.warn('HM_CLIENT_ID or HM_CLIENT_SECRET are not set. Using mock data. Please add them to your .env file.');
+  if (!clientId || !clientSecret || clientId === 'YOUR_CLIENT_ID' || clientSecret === 'YOUR_CLIENT_SECRET') {
     // Return a dummy token for mock mode
     return 'mock-token';
   }
@@ -68,7 +68,7 @@ async function getAccessToken(): Promise<string> {
 async function getVehicleData(endpoint: string, vin: string, token: string) {
   // Use mock data if we're using a mock token.
   if (token === 'mock-token') {
-    console.log(`MOCK API CALL: GET /${endpoint}`);
+    console.warn(`HM API credentials not set. Using mock data for '${endpoint}'.`);
     switch (endpoint) {
       case 'maintenance':
         return {
@@ -121,8 +121,29 @@ function createControlMessage(id: string, message: string, type: 'info' | 'warni
 
 export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
   try {
-    console.info('access token')
     const token = await getAccessToken();
+
+    // Special case for mock data to signal to the UI
+    if (token === 'mock-token') {
+       const mockData = await getVehicleData('maintenance', MOCK_VIN, token);
+       const nextServiceDate = new Date();
+       nextServiceDate.setFullYear(nextServiceDate.getFullYear() + 1);
+       return {
+            temperatures: { engine: 90, oil: 95, coolant: 85, transmission: 75, },
+            fluidLevels: { oil: 85, coolant: 90, washer: 60, brake: 95, },
+            controlMessages: [
+                { id: '1', message: 'All systems nominal.', type: 'info', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
+                { id: '2', message: 'Washer fluid low.', type: 'warning', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() },
+                { id: '3', message: 'Tire pressure monitoring system fault.', type: 'error', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString() },
+            ],
+            serviceDetails: {
+                lastServiceDate: '2023-11-15',
+                nextServiceDate: nextServiceDate.toISOString().split('T')[0],
+                odometer: -1, // Use -1 to indicate mock data
+                recommendedActions: ['Check tire pressure', 'Rotate tires'],
+            },
+       }
+    }
 
     const [maintenance, engineOil, engineCoolant, fluidLevels, warnings] = await Promise.all([
       getVehicleData('maintenance', MOCK_VIN, token),
