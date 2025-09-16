@@ -35,8 +35,8 @@ async function getAccessToken(): Promise<string> {
     clientId === 'YOUR_CLIENT_ID' ||
     clientSecret === 'YOUR_CLIENT_SECRET'
   ) {
-    return 'mock-token';
-  }
+    throw new Error('HM_CLIENT_ID and HM_CLIENT_SECRET must be set in your .env file.');
+  } 
 
   const tokenUrl = 'https://sandbox.api.high-mobility.com/v1/access_tokens';
 
@@ -81,10 +81,6 @@ async function getAccessToken(): Promise<string> {
 }
 
 async function getVehicleData(vin: string, token: string) {
-  if (token === 'mock-token') {
-    return null;
-  }
-
   const apiUrl = `https://sandbox.api.high-mobility.com/v1/vehicle-data/autoapi-13/${vin}`;
   const response = await fetch(apiUrl, {
     headers: {
@@ -98,6 +94,7 @@ async function getVehicleData(vin: string, token: string) {
       `Failed to fetch vehicle data: ${response.statusText}`
     );
   }
+  
   return response.json();
 }
 
@@ -113,50 +110,6 @@ function createControlMessage(
 export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
   try {
     const token = await getAccessToken();
-
-    // Use mock data if we don't have a valid token
-    if (token === 'mock-token') {
-      console.warn(
-        `HM API credentials not set. Using mock data for maintenance screen.`
-      );
-      const nextServiceDate = new Date();
-      nextServiceDate.setFullYear(nextServiceDate.getFullYear() + 1);
-      return {
-        temperatures: {engine: 90, oil: 95, coolant: 85, transmission: 75},
-        fluidLevels: {oil: 85, coolant: 90, washer: 60, brake: 95},
-        controlMessages: [
-          {
-            id: '1',
-            message: 'All systems nominal.',
-            type: 'info',
-            timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-          },
-          {
-            id: '2',
-            message: 'Washer fluid low.',
-            type: 'warning',
-            timestamp: new Date(
-              Date.now() - 1000 * 60 * 60 * 24
-            ).toISOString(),
-          },
-          {
-            id: '3',
-            message: 'Tire pressure monitoring system fault.',
-            type: 'error',
-            timestamp: new Date(
-              Date.now() - 1000 * 60 * 60 * 72
-            ).toISOString(),
-          },
-        ],
-        serviceDetails: {
-          lastServiceDate: '2023-11-15',
-          nextServiceDate: nextServiceDate.toISOString().split('T')[0],
-          odometer: -1, // Use -1 to indicate mock data
-          recommendedActions: ['Check tire pressure', 'Rotate tires'],
-        },
-      };
-    }
-
     const vehicleData: any = await getVehicleData(MOCK_VIN, token);
 
     const controlMessages: ControlMessage[] = [
@@ -206,8 +159,8 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
       fluidLevels: {
         oil: 85, // Mocked, not directly in new response
         coolant: 90, // Mocked, not directly in new response
-        washer: vehicleData.dashboard_lights.dashboard_lights.find((l:any) => l.data.name === 'windscreen_washer_fluid')?.data.state === 'on' ? 10 : 100,
-        brake: vehicleData.dashboard_lights.dashboard_lights.find((l:any) => l.data.name === 'brake_fluid_warning')?.data.state === 'on' ? 10 : 100,
+        washer: vehicleData.dashboard_lights?.dashboard_lights.find((l:any) => l.data.name === 'windscreen_washer_fluid')?.data.state === 'on' ? 10 : 100,
+        brake: vehicleData.dashboard_lights?.dashboard_lights.find((l:any) => l.data.name === 'brake_fluid_warning')?.data.state === 'on' ? 10 : 100,
       },
       controlMessages: controlMessages.slice(0, 5), // Limit messages to avoid overflow
       serviceDetails: {
