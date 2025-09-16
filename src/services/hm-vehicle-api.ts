@@ -1,83 +1,114 @@
 // You will need a valid VIN for a vehicle supported by the High Mobility API
 const MOCK_VIN = "VIN_GOES_HERE";
 import type { CarMaintenanceData } from '@/lib/types';
+import fetch from 'node-fetch';
 
-// A mock implementation of the High Mobility Vehicle API client.
-// In a real application, you would use the High Mobility SDK or a fetch client.
+// A more realistic implementation of the High Mobility Vehicle API client.
+// It now includes OAuth 2.0 Client Credentials Grant flow to get an access token.
 
-async function getVehicleData(endpoint: string, vin: string, apiKey: string) {
-  // This is a mock implementation. 
-  // In a real scenario, you'd fetch from `https://api.high-mobility.com/v1/vehicle/${vin}/${endpoint}`
-  // using the apiKey.
-  
-  // To keep this demo working without a real API key and VIN, we'll return some mock data
-  // that resembles the API's response structure.
+// In-memory cache for the access token
+let accessToken: string | null = null;
+let tokenExpiresAt: number | null = null;
 
-  console.log(`MOCK API CALL: GET /${endpoint}`);
+interface AccessTokenResponse {
+  access_token: string;
+  expires_in: number;
+  token_type: string;
+  scope: string;
+}
 
-  switch (endpoint) {
-    case 'maintenance':
-      return {
-        "odometer": {
-          "value": 45210,
-          "unit": "km",
-          "timestamp": "2024-05-20T10:00:00Z"
-        },
-        "service_due_in": {
-          "value": 15000,
-          "unit": "km",
-          "timestamp": "2024-05-20T10:00:00Z"
-        }
-      };
-    case 'engine_oil':
-      return {
-        "level": {
-            "value": 0.85, // 85%
-            "timestamp": "2024-05-20T10:00:00Z"
-        },
-        "temperature": {
-            "value": 95,
-            "unit": "celsius",
-            "timestamp": "2024-05-20T10:00:00Z"
-        }
-      };
-    case 'engine_coolant':
-        return {
-          "level": {
-              "value": 0.90, // 90%
-              "timestamp": "2024-05-20T10:00:00Z"
-          },
-          "temperature": {
-              "value": 85,
-              "unit": "celsius",
-              "timestamp": "2024-05-20T10:00:00Z"
-          }
-        };
-    case 'fluid_levels':
-        return {
-            "washer_fluid_level": {
-                "value": "low", // This can be an enum
-                "timestamp": "2024-05-20T10:00:00Z"
-            },
-            "brake_fluid_level": {
-                "value": "full",
-                "timestamp": "2024-05-20T10:00:00Z"
-            }
-        };
-    case 'warnings':
-        return {
-            "warnings": [
-                {
-                    "warning_id": "TPMS_FAULT",
-                    "description": "Tire pressure monitoring system fault.",
-                    "severity": "high",
-                    "timestamp": new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString()
-                }
-            ]
-        }
-    default:
-      return {};
+async function getAccessToken(): Promise<string> {
+  // If we have a valid token in cache, return it
+  if (accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt) {
+    return accessToken;
   }
+
+  const clientId = process.env.HM_CLIENT_ID;
+  const clientSecret = process.env.HM_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret || clientId === 'YOUR_CLIENT_ID') {
+    console.warn('HM_CLIENT_ID or HM_CLIENT_SECRET are not set. Using mock data. Please add them to your .env file.');
+    // Return a dummy token for mock mode
+    return 'mock-token';
+  }
+
+  const tokenUrl = 'https://api.high-mobility.com/v1/oauth/token';
+  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+
+  try {
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${credentials}`,
+      },
+      body: 'grant_type=client_credentials',
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Failed to get access token: ${response.statusText} - ${errorBody}`);
+    }
+
+    const tokenData = await response.json() as AccessTokenResponse;
+    accessToken = tokenData.access_token;
+    // Set expiry to 1 minute before it actually expires to be safe
+    tokenExpiresAt = Date.now() + (tokenData.expires_in - 60) * 1000;
+
+    return accessToken;
+  } catch (error) {
+    console.error("Error fetching access token:", error);
+    throw new Error("Could not authenticate with Vehicle API.");
+  }
+}
+
+async function getVehicleData(endpoint: string, vin: string, token: string) {
+  // Use mock data if we're using a mock token.
+  if (token === 'mock-token') {
+    console.log(`MOCK API CALL: GET /${endpoint}`);
+    switch (endpoint) {
+      case 'maintenance':
+        return {
+          "odometer": { "value": 45210, "unit": "km", "timestamp": "2024-05-20T10:00:00Z" },
+          "service_due_in": { "value": 15000, "unit": "km", "timestamp": "2024-05-20T10:00:00Z" }
+        };
+      case 'engine_oil':
+        return {
+          "level": { "value": 0.85, "timestamp": "2024-05-20T10:00:00Z" },
+          "temperature": { "value": 95, "unit": "celsius", "timestamp": "2024-05-20T10:00:00Z" }
+        };
+      case 'engine_coolant':
+        return {
+          "level": { "value": 0.90, "timestamp": "2024-05-20T10:00:00Z" },
+          "temperature": { "value": 85, "unit": "celsius", "timestamp": "2024-05-20T10:00:00Z" }
+        };
+      case 'fluid_levels':
+        return {
+          "washer_fluid_level": { "value": "low", "timestamp": "2024-05-20T10:00:00Z" },
+          "brake_fluid_level": { "value": "full", "timestamp": "2024-05-20T10:00:00Z" }
+        };
+      case 'warnings':
+        return {
+          "warnings": [
+            { "warning_id": "TPMS_FAULT", "description": "Tire pressure monitoring system fault.", "severity": "high", "timestamp": new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString() }
+          ]
+        };
+      default: return {};
+    }
+  }
+
+  const apiUrl = `https://api.high-mobility.com/v1/vehicle/${vin}/${endpoint}`;
+  const response = await fetch(apiUrl, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch vehicle data from ${endpoint}: ${response.statusText}`);
+  }
+  return response.json();
 }
 
 
@@ -86,18 +117,15 @@ function createControlMessage(id: string, message: string, type: 'info' | 'warni
 }
 
 export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
-  const apiKey = process.env.HM_API_KEY;
-  if (!apiKey) {
-    throw new Error('HM_API_KEY is not set. Please add it to your .env file.');
-  }
-
   try {
+    const token = await getAccessToken();
+
     const [maintenance, engineOil, engineCoolant, fluidLevels, warnings] = await Promise.all([
-      getVehicleData('maintenance', MOCK_VIN, apiKey),
-      getVehicleData('engine_oil', MOCK_VIN, apiKey),
-      getVehicleData('engine_coolant', MOCK_VIN, apiKey),
-      getVehicleData('fluid_levels', MOCK_VIN, apiKey),
-      getVehicleData('warnings', MOCK_VIN, apiKey)
+      getVehicleData('maintenance', MOCK_VIN, token),
+      getVehicleData('engine_oil', MOCK_VIN, token),
+      getVehicleData('engine_coolant', MOCK_VIN, token),
+      getVehicleData('fluid_levels', MOCK_VIN, token),
+      getVehicleData('warnings', MOCK_VIN, token)
     ]);
 
     const controlMessages = [
