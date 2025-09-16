@@ -11,8 +11,10 @@ import AudioMode from '@/components/modes/audio-mode';
 import SatNavMode from '@/components/modes/sat-nav-mode';
 import RadioMode from '@/components/modes/radio-mode';
 import SettingsMode from '@/components/modes/settings-mode';
+import HomeMode from '@/components/modes/home-mode';
 
-const modeComponents: Record<Mode, React.ComponentType> = {
+const modeComponents: Record<Mode, React.ComponentType<any>> = {
+  home: HomeMode,
   maintenance: MaintenanceMode,
   audio: AudioMode,
   satnav: SatNavMode,
@@ -21,14 +23,14 @@ const modeComponents: Record<Mode, React.ComponentType> = {
 };
 
 export function DriveAiConsole() {
-  const [activeMode, setActiveMode] = useState<Mode>('maintenance');
+  const [activeMode, setActiveMode] = useState<Mode>('home');
 
   const ActiveComponent = modeComponents[activeMode];
 
   return (
     <Card className="w-full max-w-5xl h-[700px] max-h-[90vh] aspect-[4/3] shadow-2xl bg-card/80 backdrop-blur-sm border-secondary flex flex-col overflow-hidden">
       <div className="flex-1 p-4 sm:p-6 grid grid-cols-1">
-        {ActiveComponent && <ActiveComponent />}
+        {ActiveComponent && <ActiveComponent setActiveMode={setActiveMode} />}
       </div>
       <ConsoleNav activeMode={activeMode} setActiveMode={setActiveMode} />
       <ChatPanel />

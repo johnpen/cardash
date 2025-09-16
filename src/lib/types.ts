@@ -33,4 +33,4 @@ export type CarMaintenanceData = {
   serviceDetails: ServiceDetails;
 };
 
-export type Mode = 'maintenance' | 'audio' | 'satnav' | 'radio' | 'settings';
+export type Mode = 'home' | 'maintenance' | 'audio' | 'satnav' | 'radio' | 'settings';
