@@ -27,8 +27,10 @@ export type ServiceDetails = {
 };
 
 export type TirePressure = {
-  location: string;
+  location: 'front_left' | 'front_right' | 'rear_left' | 'rear_right';
   pressure: number;
+  targetPressure: number;
+  ok: boolean;
 };
 
 export type CarMaintenanceData = {

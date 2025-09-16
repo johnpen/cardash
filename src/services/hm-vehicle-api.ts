@@ -152,10 +152,35 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
         });
     }
     
-    const tirePressures: TirePressure[] = vehicleData.diagnostics?.tire_pressures?.map((tire: any) => ({
-      location: tire.data.location.replace(/_/g, ' '),
-      pressure: tire.data.pressure.value
-    })) || [];
+    const tirePressureTargets: {[key: string]: number} = {};
+    if (vehicleData.diagnostics?.tire_pressures_targets) {
+      vehicleData.diagnostics.tire_pressures_targets.forEach((tire: any) => {
+        tirePressureTargets[tire.data.location] = tire.data.pressure.value;
+      });
+    }
+
+    const validLocations = ['front_left', 'front_right', 'rear_left', 'rear_right'];
+
+    const tirePressures: TirePressure[] = vehicleData.diagnostics?.tire_pressures
+      ?.filter((tire: any) => validLocations.includes(tire.data.location))
+      .map((tire: any): TirePressure | null => {
+        const location = tire.data.location;
+        const pressure = tire.data.pressure.value;
+        const targetPressure = tirePressureTargets[location] || 0;
+        const tolerance = targetPressure * 0.1; // 10% tolerance
+        const ok = Math.abs(pressure - targetPressure) <= tolerance;
+
+        if (validLocations.includes(location)) {
+          return {
+            location: location as TirePressure['location'],
+            pressure,
+            targetPressure,
+            ok,
+          };
+        }
+        return null;
+      })
+      .filter((p: TirePressure | null): p is TirePressure => p !== null) || [];
 
 
     const nextServiceDate = new Date();
