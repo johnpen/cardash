@@ -17,43 +17,43 @@ export default function AudioMode({ setActiveMode }: AudioModeProps) {
   const albumArt = PlaceHolderImages.find(img => img.id === 'album-art');
   
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-8">
-      <Card className="w-full max-w-sm border-0 bg-transparent shadow-none">
+    <div className="flex flex-col items-center justify-center h-full gap-6">
+      <Card className="w-full max-w-xs border-0 bg-transparent shadow-none">
         <CardContent className="p-0 flex flex-col items-center">
           {albumArt && (
             <Image
               src={albumArt.imageUrl}
               alt={albumArt.description}
-              width={400}
-              height={400}
+              width={300}
+              height={300}
               className="rounded-lg aspect-square object-cover shadow-2xl"
               data-ai-hint={albumArt.imageHint}
             />
           )}
-          <div className="text-center mt-6">
-            <h2 className="text-2xl font-bold">Midnight City</h2>
-            <p className="text-muted-foreground text-lg">M83</p>
+          <div className="text-center mt-4">
+            <h2 className="text-xl font-bold">Midnight City</h2>
+            <p className="text-muted-foreground">M83</p>
           </div>
         </CardContent>
       </Card>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-sm">
         <Progress value={33} />
-        <div className="flex justify-between text-xs text-muted-foreground mt-2">
+        <div className="flex justify-between text-xs text-muted-foreground mt-1.5">
             <span>1:21</span>
             <span>4:03</span>
         </div>
       </div>
 
       <div className="flex items-center justify-center gap-4">
-        <Button size="icon" variant="ghost" className="h-16 w-16 rounded-full">
-          <Rewind className="h-8 w-8" />
+        <Button size="icon" variant="ghost" className="h-14 w-14 rounded-full">
+          <Rewind className="h-7 w-7" />
         </Button>
-        <Button size="icon" variant="default" className="h-20 w-20 rounded-full bg-primary text-primary-foreground shadow-lg">
-          <Pause className="h-10 w-10" fill="currentColor" />
+        <Button size="icon" variant="default" className="h-16 w-16 rounded-full bg-primary text-primary-foreground shadow-lg">
+          <Pause className="h-8 w-8" fill="currentColor" />
         </Button>
-        <Button size="icon" variant="ghost" className="h-16 w-16 rounded-full">
-          <FastForward className="h-8 w-8" />
+        <Button size="icon" variant="ghost" className="h-14 w-14 rounded-full">
+          <FastForward className="h-7 w-7" />
         </Button>
       </div>
     </div>
