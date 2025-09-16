@@ -107,6 +107,11 @@ function createControlMessage(
   return {id, message, type, timestamp};
 }
 
+function isLightOn(vehicleData: any, lightName: string): boolean {
+    const light = vehicleData.dashboard_lights?.dashboard_lights.find((l:any) => l.data.name === lightName);
+    return light?.data.state === 'on';
+}
+
 export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
   try {
     const token = await getAccessToken();
@@ -151,16 +156,16 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
 
     const mappedData: CarMaintenanceData = {
       temperatures: {
-        engine: 90, // Mocked
-        oil: 95, // Mocked
-        coolant: 85, // Mocked
-        transmission: 75, // Mocked
+        engine: { ok: !isLightOn(vehicleData, 'engine_coolant_temperature') },
+        oil: { ok: !isLightOn(vehicleData, 'engine_oil') },
+        coolant: { ok: !isLightOn(vehicleData, 'engine_coolant_level') },
+        transmission: { ok: !isLightOn(vehicleData, 'transmission_fluid_temperature') },
       },
       fluidLevels: {
-        oil: 85, // Mocked, not directly in new response
-        coolant: 90, // Mocked, not directly in new response
-        washer: vehicleData.dashboard_lights?.dashboard_lights.find((l:any) => l.data.name === 'windscreen_washer_fluid')?.data.state === 'on' ? 10 : 100,
-        brake: vehicleData.dashboard_lights?.dashboard_lights.find((l:any) => l.data.name === 'brake_fluid_warning')?.data.state === 'on' ? 10 : 100,
+        oil: { ok: !isLightOn(vehicleData, 'engine_oil_level') },
+        coolant: { ok: !isLightOn(vehicleData, 'engine_coolant_level') },
+        washer: { ok: !isLightOn(vehicleData, 'windscreen_washer_fluid') },
+        brake: { ok: !isLightOn(vehicleData, 'brake_fluid_warning') },
       },
       controlMessages: controlMessages.slice(0, 5), // Limit messages to avoid overflow
       serviceDetails: {

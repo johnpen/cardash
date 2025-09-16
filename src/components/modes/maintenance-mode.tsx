@@ -4,29 +4,33 @@ import { useEffect, useState } from 'react';
 import { Droplets, Gauge, MessageSquareWarning, Wrench, Thermometer, Info, AlertTriangle, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import type { CarMaintenanceData, ControlMessage } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { getCarMaintenanceData } from '@/services/hm-vehicle-api';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLog } from '@/components/debug/log-context';
-
-const getStatusColor = (value: number) => {
-  if (value < 20) return 'bg-destructive';
-  if (value < 50) return 'bg-yellow-500';
-  return 'bg-primary';
-};
-
-const getTempColor = (value: number) => {
-    if (value > 100) return 'bg-destructive';
-    if (value > 90) return 'bg-yellow-500';
-    return 'bg-primary';
-}
+import { cn } from '@/lib/utils';
 
 const messageIcons: Record<ControlMessage['type'], React.ReactNode> = {
     info: <Info className="text-blue-400 h-5 w-5" />,
     warning: <AlertTriangle className="text-yellow-400 h-5 w-5" />,
     error: <ShieldAlert className="text-red-500 h-5 w-5" />,
 }
+
+const StatusItem = ({ label, ok }: { label: string; ok: boolean }) => (
+    <div className="flex items-center justify-between py-2">
+      <span className="text-sm font-medium capitalize">{label}</span>
+      <div className="flex items-center gap-2">
+        {ok ? (
+          <CheckCircle2 className="h-5 w-5 text-green-500" />
+        ) : (
+          <AlertTriangle className="h-5 w-5 text-yellow-500" />
+        )}
+        <span className={cn("text-sm font-bold", ok ? 'text-green-500' : 'text-yellow-500')}>
+            {ok ? 'OK' : 'Alert'}
+        </span>
+      </div>
+    </div>
+  );
 
 export default function MaintenanceMode() {
   const [data, setData] = useState<CarMaintenanceData | null>(null);
@@ -66,16 +70,10 @@ export default function MaintenanceMode() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Thermometer className="text-primary" /> Temperatures</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-              {Object.entries(temperatures).map(([key, value]) => (
-                  <div key={key}>
-                      <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium capitalize">{key}</span>
-                          <span className="text-sm font-bold">{value}°C</span>
-                      </div>
-                      <Progress value={(value / 120) * 100} indicatorClassName={getTempColor(value)} />
-                  </div>
-              ))}
+          <CardContent className="space-y-1 divide-y">
+            {Object.entries(temperatures).map(([key, value]) => (
+                <StatusItem key={key} label={key} ok={value.ok} />
+            ))}
           </CardContent>
         </Card>
         
@@ -83,16 +81,10 @@ export default function MaintenanceMode() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Droplets className="text-primary" /> Fluid Levels</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-              {Object.entries(fluidLevels).map(([key, value]) => (
-                  <div key={key}>
-                      <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium capitalize">{key}</span>
-                          <span className="text-sm font-bold">{value}%</span>
-                      </div>
-                      <Progress value={value} indicatorClassName={getStatusColor(value)} />
-                  </div>
-              ))}
+          <CardContent className="space-y-1 divide-y">
+             {Object.entries(fluidLevels).map(([key, value]) => (
+                <StatusItem key={key} label={key} ok={value.ok} />
+            ))}
           </CardContent>
         </Card>
 

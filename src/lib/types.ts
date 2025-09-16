@@ -1,15 +1,15 @@
 export type TemperatureData = {
-  engine: number;
-  oil: number;
-  coolant: number;
-  transmission: number;
+  engine: { ok: boolean };
+  oil: { ok: boolean };
+  coolant: { ok: boolean };
+  transmission: { ok: boolean };
 };
 
 export type FluidLevelsData = {
-  oil: number;
-  coolant: number;
-  washer: number;
-  brake: number;
+  oil: { ok: boolean };
+  coolant: { ok: boolean };
+  washer: { ok: boolean };
+  brake: { ok: boolean };
 };
 
 export type ControlMessage = {
