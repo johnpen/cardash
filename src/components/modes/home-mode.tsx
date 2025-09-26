@@ -1,7 +1,7 @@
 'use client';
 
 import type { Dispatch, SetStateAction } from 'react';
-import { Music, MapPin, Radio, Settings, Wrench } from 'lucide-react';
+import { Music, MapPin, Radio, Settings, Wrench, Cog } from 'lucide-react';
 import type { Mode } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -11,6 +11,7 @@ interface HomeModeProps {
 
 const sections: { mode: Mode; label: string; icon: React.ElementType }[] = [
   { mode: 'maintenance', label: 'Maintenance', icon: Wrench },
+  { mode: 'services', label: 'Services', icon: Cog },
   { mode: 'audio', label: 'Audio', icon: Music },
   { mode: 'satnav', label: 'Sat Nav', icon: MapPin },
   { mode: 'radio', label: 'Radio', icon: Radio },

@@ -22,6 +22,7 @@ export type ControlMessage = {
 export type ServiceDetails = {
   lastServiceDate: string;
   nextServiceDate: string;
+  distanceToNextService: number;
   odometer: number;
   recommendedActions: string[];
 };
@@ -41,4 +42,5 @@ export type CarMaintenanceData = {
   tirePressures: TirePressure[];
 };
 
-export type Mode = 'home' | 'maintenance' | 'audio' | 'satnav' | 'radio' | 'settings';
+export type Mode = 'home' | 'services' | 'maintenance' | 'audio' | 'satnav' | 'radio' | 'settings';
+export type Subs = 'mapUpdate' | 'concierge';

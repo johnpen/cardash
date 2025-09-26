@@ -1,7 +1,7 @@
 'use client';
 
 import type { Dispatch, SetStateAction } from 'react';
-import { Home, Music, MapPin, Radio, Settings, Wrench } from 'lucide-react';
+import { Home, Music, MapPin, Radio, Settings, Cog, Wrench} from 'lucide-react';
 import type { Mode } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ interface ConsoleNavProps {
 
 const navItems: { mode: Mode; label: string; icon: React.ElementType }[] = [
   { mode: 'home', label: 'Home', icon: Home },
+  { mode: 'services', label: 'Services', icon: Cog },
   { mode: 'maintenance', label: 'Maintenance', icon: Wrench },
   { mode: 'audio', label: 'Audio', icon: Music },
   { mode: 'satnav', label: 'Sat Nav', icon: MapPin },

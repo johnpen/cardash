@@ -141,26 +141,7 @@ export default function MaintenanceMode() {
           </CardContent>
         </Card>
         
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/>
-                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-                    <path d="M12 22a10 10 0 0 0 10-10"/>
-                    <path d="M2 12a10 10 0 0 0 10 10"/>
-                </svg>
-                Tire Pressure
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {tirePressures.length > 0 ? (
-                <TirePressureDisplay pressures={tirePressures} />
-            ) : (
-                <p className="text-muted-foreground text-sm py-2 text-center">Tire pressure data not available.</p>
-            )}
-          </CardContent>
-        </Card>
+
 
         <Card>
           <CardHeader>
@@ -211,6 +192,27 @@ export default function MaintenanceMode() {
                       ))}
                   </ul>
               </div>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/>
+                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+                    <path d="M12 22a10 10 0 0 0 10-10"/>
+                    <path d="M2 12a10 10 0 0 0 10 10"/>
+                </svg>
+                Tire Pressure
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {tirePressures.length > 0 ? (
+                <TirePressureDisplay pressures={tirePressures} />
+            ) : (
+                <p className="text-muted-foreground text-sm py-2 text-center">Tire pressure data not available.</p>
+            )}
           </CardContent>
         </Card>
       </div>

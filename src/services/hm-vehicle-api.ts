@@ -120,12 +120,7 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
     const vehicleData: any = await getVehicleData(MOCK_VIN, token);
 
     const controlMessages: ControlMessage[] = [
-      createControlMessage(
-        'info-1',
-        'All systems nominal.',
-        'info',
-        new Date().toISOString()
-      ),
+
     ];
 
     if (vehicleData.dashboard_lights) {
@@ -150,6 +145,15 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
                 msg.timestamp
             ));
         });
+    }
+
+    if(controlMessages.length <1){
+      createControlMessage(
+        'info-1',
+        'All systems nominal.',
+        'info',
+        new Date().toISOString()
+      )
     }
     
     const tirePressureTargets: {[key: string]: number} = {};
@@ -204,7 +208,8 @@ export const getCarMaintenanceData = async (): Promise<CarMaintenanceData> => {
         lastServiceDate: '2024-11-15', // Mocked
         nextServiceDate: vehicleData.maintenance?.drive_in_inspection_time_to?.timestamp || nextServiceDate.toISOString().split('T')[0],
         odometer: vehicleData.diagnostics?.odometer?.data?.value || 0,
-        recommendedActions: ['Check tire pressure', 'Rotate tires'], // Mocked
+        distanceToNextService:  vehicleData.maintenance?.distance_to_next_service.data?.value  ||  0,
+        recommendedActions: [], // Mocked
       },
       tirePressures: tirePressures,
     };

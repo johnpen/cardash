@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { ConsoleNav } from '@/components/console-nav';
 import { ChatPanel } from '@/components/chat/chat-panel';
 import MaintenanceMode from '@/components/modes/maintenance-mode';
+import ServicesMode from '@/components/modes/services-mode';
 import AudioMode from '@/components/modes/audio-mode';
 import SatNavMode from '@/components/modes/sat-nav-mode';
 import RadioMode from '@/components/modes/radio-mode';
@@ -15,6 +16,7 @@ import HomeMode from '@/components/modes/home-mode';
 
 const modeComponents: Record<Mode, React.ComponentType<any>> = {
   home: HomeMode,
+  services: ServicesMode,
   maintenance: MaintenanceMode,
   audio: AudioMode,
   satnav: SatNavMode,
