@@ -33,7 +33,7 @@ export function ChatPanel() {
           <Bot className="h-7 w-7" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md flex flex-col p-0" style="display: flex, flexDirection: column, height:100%">
+      <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>DriveAI Assistant</SheetTitle>
         </SheetHeader>
